@@ -1,0 +1,295 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <link rel="icon" type="image/x-icon" href="path/to/favicon.ico">
+  <meta charset="UTF-8">
+  <title>Memories</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+      font-family: 'Segoe UI', sans-serif;
+    }
+
+    body {
+      background-color: #e0f7fa; /* biru muda */
+      color: #37474f; /* abu tua */
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 150vh;
+    }
+
+    .page {
+      display: none;
+      flex-direction: column;
+      align-items: center;
+      text-align: center;
+      padding: 2rem;
+      max-width: 600px;
+      width: 100%;
+      animation: fadeIn 0.5s ease-in-out;
+    }
+
+    .page.active {
+      display: flex;
+    }
+
+    input, button {
+      padding: 10px;
+      margin-top: 1rem;
+      border: none;
+      border-radius: 8px;
+      font-size: 1rem;
+    }
+
+    button {
+      background-color: #90caf9;
+      cursor: pointer;
+      transition: background-color 0.3s ease;
+    }
+
+    button:hover {
+      background-color: #64b5f6;
+    }
+
+    .chat-bubble {
+      background: #ffffff;
+      padding: 15px 20px;
+      border-radius: 20px;
+      margin: 5px;
+      box-shadow: 1px 1px 5px rgba(0,0,0,0.1);
+      align-self: flex-start;
+    }
+
+    .chat-bubble.user {
+      background: #b3e5fc;
+      align-self: flex-end;
+    }
+
+    #puzzle {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      justify-content: center;
+    }
+
+    .puzzle-piece {
+      width: 80px;
+      height: 80px;
+      background-color: #b3e5fc;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      font-weight: bold;
+      font-size: 1.5rem;
+      cursor: pointer;
+      border-radius: 10px;
+    }
+
+    img, video {
+      max-width:50%;
+      margin: 1rem 0;
+      border-radius: 10px;
+    }
+    .photo-gallery {
+      display: flex;
+      gap: 1rem;
+      justify-content: center;
+      flex-wrap: wrap;
+      margin-bottom: 1rem;
+}
+
+    .photo-frame img {
+      max-width: 150px;
+      border-radius: 10px;
+      box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+      height: auto;
+}
+
+
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: scale(0.95); }
+      to { opacity: 1; transform: scale(1); }
+    }
+    @keyframes swingLine {
+  0% { transform: rotate(0deg); }
+  50% { transform: rotate(1.5deg); }
+  100% { transform: rotate(0deg); }
+}
+
+  </style>
+</head>
+<body>
+
+  <!-- Audio -->
+  <audio id="bgMusic" loop autoplay>
+    <source src="music.mp3" type="audio/mpeg">
+    Your browser does not support audio.
+  </audio>
+
+  <!-- 0. Loading -->
+  <div id="loadingPage" class="page active">
+    <h2>Memuat kenangan...</h2>
+  </div>
+
+  <!-- 1. Login -->
+  <div id="loginPage" class="page">
+    <h2>Hello Bestie</h2>
+    <p>Masukkan kata sandi untuk masuk ke Memories 💌</p>
+    <input type="password" id="passwordInput" placeholder="Password">
+    <button id="loginBtn">Masuk</button>
+    <p id="loginError" style="color: red; display: none;">Paswornya Nama Kamu loh!</p>
+  </div>
+
+  <!-- 2. Chat -->
+  <div id="chatPage" class="page">
+    <h2>Dibaca dulu yah Cantik Pesan dari Aku</h2>
+    <div id="chatBox" style="width:100%; display: flex; flex-direction: column;"></div>
+    <button id="toGameBtn">Lanjut</button>
+  </div>
+
+  <!-- 3. Game -->
+  <div id="gamePage" class="page">
+    <h2>Susun Memories</h2>
+    <p>Urutkan huruf berikut menjadi kata: 💡</p>
+    <div id="puzzle"></div>
+    <button id="finishGameBtn">Selesai</button>
+    <p id="gameMessage" style="margin-top: 1rem;"></p>
+  </div>
+
+ <!-- 4. Gift -->
+<div id="giftPage" class="page">
+  <h2>Hadiah Kecil Untuk Mu 🎁</h2>
+  <div class="photo-gallery">
+    <div class="photo-frame"><img src="foto1.jpg" alt="foto 1"></div>
+    <div class="photo-frame"><img src="foto2.jpg" alt="foto 2"></div>
+    <div class="photo-frame"><img src="foto3.jpg" alt="foto 3"></div>
+  </div>
+  <video controls>
+    <source src="video.mp4" type="video/mp4">
+    Browser kamu tidak mendukung video.
+  </video>
+  <button id="toThankYouBtn">Selanjutnya</button>
+</div>
+
+
+
+  <!-- 5. Terima Kasih -->
+  <div id="thankYouPage" class="page">
+    <h2>Untuk Kamu</h2>
+    <p id="thankYouText" style="white-space: pre-line;"></p>
+  </div>
+
+  <script>
+    const password = "Salsabila";
+    const correctOrder = ['M','E','M','O','R','I','E','S'];
+    const pieces = [...correctOrder].sort(() => Math.random() - 0.5);
+
+    // Elements
+    const pages = document.querySelectorAll('.page');
+    const loginBtn = document.getElementById('loginBtn');
+    const passwordInput = document.getElementById('passwordInput');
+    const loginError = document.getElementById('loginError');
+    const toGameBtn = document.getElementById('toGameBtn');
+    const finishGameBtn = document.getElementById('finishGameBtn');
+    const toThankYouBtn = document.getElementById('toThankYouBtn');
+    const puzzleContainer = document.getElementById('puzzle');
+    const gameMessage = document.getElementById('gameMessage');
+    const thankYouText = document.getElementById('thankYouText');
+
+    function showPage(page) {
+      pages.forEach(p => p.classList.remove('active'));
+      page.classList.add('active');
+    }
+
+    setTimeout(() => showPage(document.getElementById('loginPage')), 2000);
+
+    loginBtn.onclick = () => {
+      if (passwordInput.value === password) {
+        showPage(document.getElementById('chatPage'));
+        simulateChat();
+      } else {
+        loginError.style.display = 'block';
+      }
+    };
+
+    const messages = [
+      "Hai kamu 🩵",
+      "Sudah lama yah kita tidak bercerita",
+      "Bertukar kisah dan tertawa bersama",
+      "Berawal dari Saling gak suka",
+      "Ternyata berakhir menjadi teman cerita",
+      "Yang asalnya hanya sekedar teman seperjuangan", 
+      "menjadi teman yang saling bertukar mimpi",
+      "Kamu ada dan hadir saat aku butuh tempat cerita", 
+      "saat aku merasa bahwa aku sendiri",
+      "Terlihat lebay yah, tapi aku hanya berusaha agar kamu tau", 
+      "Bahwa aku akan tetap ada untuk mu ampai nanti",
+      "Jadilah saksi hasil dari hasil Amel yang dulu", 
+      "Dan mari ketemu di esok hari",
+      "Terima kasih sudah ada 🫶",
+      "Aku punya sesuatu buat kamu...",
+    ];
+
+    function simulateChat(index = 0) {
+      if (index < messages.length) {
+        const bubble = document.createElement('div');
+        bubble.className = 'chat-bubble';
+        bubble.textContent = messages[index];
+        document.getElementById('chatBox').appendChild(bubble);
+        setTimeout(() => simulateChat(index + 1), 1500);
+      }
+    }
+
+    toGameBtn.onclick = () => {
+      showPage(document.getElementById('gamePage'));
+      renderPuzzle();
+    };
+
+    function renderPuzzle() {
+      puzzleContainer.innerHTML = '';
+      pieces.forEach((letter, i) => {
+        const div = document.createElement('div');
+        div.className = 'puzzle-piece';
+        div.textContent = letter;
+        div.draggable = true;
+
+        div.ondragstart = e => e.dataTransfer.setData('text/plain', i);
+        div.ondragover = e => e.preventDefault();
+        div.ondrop = e => {
+          e.preventDefault();
+          const from = e.dataTransfer.getData('text/plain');
+          [pieces[i], pieces[from]] = [pieces[from], pieces[i]];
+          renderPuzzle();
+        };
+
+        puzzleContainer.appendChild(div);
+      });
+    }
+
+    finishGameBtn.onclick = () => {
+      const isCorrect = pieces.every((val, i) => val === correctOrder[i]);
+      if (isCorrect) {
+        gameMessage.textContent = "Yay! Kamu berhasil! 🎉";
+        setTimeout(() => showPage(document.getElementById('giftPage')), 1500);
+      } else {
+        gameMessage.textContent = "Coba susun ulang yaa 🧩";
+      }
+    };
+
+    toThankYouBtn.onclick = () => {
+      showPage(document.getElementById('thankYouPage'));
+      thankYouText.textContent = `Terima kasih sudah menjadi bagian dari hidupku.
+
+Kisah Asrama ini penuh cerita indah, duka, tawa, dan harapan.
+
+Semoga dengan mengenalku menjadi sebuah kebaikan untukmu 🩵`;
+    };
+
+  </script>
+
+</body>
+</html>
